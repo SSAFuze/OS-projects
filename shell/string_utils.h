@@ -99,8 +99,6 @@ struct mult_cmd_token_array mult_tokeniser(char *command) {
     commands[command_count-1] = (char **)malloc(counter * sizeof(char *));
     memcpy(commands[command_count-1], tokens, counter * sizeof(char *));
     tok_struct.token_counts[command_count-1] = counter;
-    command_count++;
-
     
     tok_struct.token_counts[command_count] = 0;
 

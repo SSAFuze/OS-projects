@@ -1,5 +1,6 @@
 // TODO:
-// Tidy memory usage/efficiency and improve readability
+// Subfolders under /media/<user>/<OS version>, whilst directories, do not seem to be recognised as such
+// Allow searching of argument
 
 #include <stdio.h>
 #include <dirent.h>
@@ -7,7 +8,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-
 
 void dir_search(char *parent) {
 
@@ -27,9 +27,10 @@ void dir_search(char *parent) {
         char *path_ptr;
 
         while ((d = readdir(dp)) != NULL) {
-            if (d->d_type == DT_DIR && strcmp(d->d_name, "..") && strcmp(d->d_name, ".")) { // Only show directories excluding . and ..
-                
-                if (*parent == '/') { // Prevent double // at start of files in root directory
+            // && strcmp(d->d_name, ".") used to identify the . directory, currently falls under check if dname starts with ., maybe be needed if later allowing argument to also list hidden dirs
+            if (d->d_type == DT_DIR && strcmp(d->d_name, "..") && strcmp(d->d_name, ".")) { // Only show directories excluding . and .. and also excludes any directory starting with . as hidden file
+
+                if (!strcmp(parent, "/")) { // Prevent double // at start of files in root directory
                     printf("%s%s\n", parent, d->d_name);
                 }
                 
@@ -37,24 +38,19 @@ void dir_search(char *parent) {
                     printf("%s/%s\n", parent, d->d_name);
                 } 
             
-            
-                path_ptr = realpath(d->d_name, fullpath); // Works for first level of recursion
+                strcpy(tmp, parent);
+                strcat(tmp, "/");
+                strcat(tmp, d->d_name);
+                path_ptr = realpath(tmp, fullpath); // Resolves duplicate /'s (ie //) at beginning of filepath to single /
 
-                if (path_ptr == NULL) { // Used for 2+ levels of recursion
-                    strcpy(tmp, parent);
-                    strcat(tmp, "/");
-                    strcat(tmp, d->d_name);
-                    path_ptr = realpath(tmp, fullpath);
-                }
-                
                 dir_search(path_ptr);
 
             }
         }
-
-        closedir(dp);
-
     }
+
+    closedir(dp);
+
 }
 
 int main() {
